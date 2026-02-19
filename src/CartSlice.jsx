@@ -6,48 +6,39 @@ export const CartSlice = createSlice({
     items: [],
   },
   reducers: {
-    // ✅ ADD ITEM
     addItem: (state, action) => {
+      const item = action.payload;
       const existingItem = state.items.find(
-        (item) => item.name === action.payload.name
+        (cartItem) => cartItem.name === item.name
       );
 
       if (existingItem) {
-        // If item already exists, increase quantity
         existingItem.quantity += 1;
       } else {
-        // Otherwise add new item with quantity 1
         state.items.push({
-          ...action.payload,
+          ...item,
           quantity: 1,
         });
       }
     },
 
-    // ✅ REMOVE ITEM
     removeItem: (state, action) => {
-      state.items = state.items.filter(
-        (item) => item.name !== action.payload
-      );
+      const name = action.payload;
+      state.items = state.items.filter((item) => item.name !== name);
     },
 
-    // ✅ UPDATE QUANTITY
     updateQuantity: (state, action) => {
       const { name, amount } = action.payload;
-
-      const item = state.items.find(
+      const existingItem = state.items.find(
         (item) => item.name === name
       );
 
-      if (item) {
-        item.quantity = amount;
+      if (existingItem) {
+        existingItem.quantity = amount;
       }
     },
   },
 });
 
-// ✅ Export actions
 export const { addItem, removeItem, updateQuantity } = CartSlice.actions;
-
-// ✅ Export reducer for store.js
 export default CartSlice.reducer;

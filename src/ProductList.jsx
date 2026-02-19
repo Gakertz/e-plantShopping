@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { addItem } from '../CartSlice'; // adjust path if needed
+import { useDispatch, useSelector } from 'react-redux';
+import { addItem } from './CartSlice';
 import './ProductList.css';
 import CartItem from './CartItem';
 
 function ProductList({ onHomeClick }) {
     const dispatch = useDispatch();
+    const cartItems = useSelector((state) => state.cart.items);
+
+    const totalQuantity = cartItems.reduce(
+        (total, item) => total + item.quantity,
+        0
+    );
 
     const [showCart, setShowCart] = useState(false);
-    const [showPlants, setShowPlants] = useState(false);
     const [addedToCart, setAddedToCart] = useState({});
 
     const plantsArray = [
@@ -34,50 +39,11 @@ function ProductList({ onHomeClick }) {
                     cost: "$18"
                 }
             ]
-        },
-        {
-            category: "Aromatic Fragrant Plants",
-            plants: [
-                {
-                    name: "Lavender",
-                    image: "https://images.unsplash.com/photo-1611909023032-2d6b3134ecba",
-                    description: "Calming scent, used in aromatherapy.",
-                    cost: "$20"
-                },
-                {
-                    name: "Jasmine",
-                    image: "https://images.unsplash.com/photo-1592729645009-b96d1e63d14b",
-                    description: "Sweet fragrance, promotes relaxation.",
-                    cost: "$18"
-                }
-            ]
         }
     ];
 
-    const handleHomeClick = (e) => {
-        e.preventDefault();
-        onHomeClick();
-    };
-
-    const handleCartClick = (e) => {
-        e.preventDefault();
-        setShowCart(true);
-    };
-
-    const handlePlantsClick = (e) => {
-        e.preventDefault();
-        setShowPlants(true);
-        setShowCart(false);
-    };
-
-    const handleContinueShopping = (e) => {
-        e.preventDefault();
-        setShowCart(false);
-    };
-
     const handleAddToCart = (plant) => {
         dispatch(addItem(plant));
-
         setAddedToCart((prevState) => ({
             ...prevState,
             [plant.name]: true
@@ -86,59 +52,34 @@ function ProductList({ onHomeClick }) {
 
     return (
         <div>
-            <div className="navbar">
-                <div className="tag">
-                    <div className="luxury">
-                        <img
-                            src="https://cdn.pixabay.com/photo/2020/08/05/13/12/eco-5465432_1280.png"
-                            alt="logo"
-                        />
-                        <a href="/" onClick={handleHomeClick}>
-                            <div>
-                                <h3>Paradise Nursery</h3>
-                                <i>Where Green Meets Serenity</i>
-                            </div>
-                        </a>
-                    </div>
-                </div>
+            <button onClick={() => setShowCart(!showCart)}>
+                {showCart ? 'Back to Products' : `Cart (${totalQuantity})`}
+            </button>
 
-                <div className="nav-links">
-                    <a href="#" onClick={handlePlantsClick}>Plants</a>
-                    <a href="#" onClick={handleCartClick} className="cart-icon">
-                        🛒
-                    </a>
-                </div>
-            </div>
-
-            {!showCart ? (
-                <div className="product-grid">
-                    {plantsArray.map((categoryObj, index) => (
-                        <div key={index} className="category-section">
-                            <h2>{categoryObj.category}</h2>
-
-                            <div className="plants-container">
-                                {categoryObj.plants.map((plant, idx) => (
-                                    <div key={idx} className="plant-card">
-                                        <img src={plant.image} alt={plant.name} />
-                                        <h3>{plant.name}</h3>
-                                        <p>{plant.description}</p>
-                                        <p className="price">{plant.cost}</p>
-
-                                        <button
-                                            className="add-to-cart-btn"
-                                            onClick={() => handleAddToCart(plant)}
-                                            disabled={addedToCart[plant.name]}
-                                        >
-                                            {addedToCart[plant.name] ? "Added" : "Add to Cart"}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+            {showCart ? (
+                <CartItem onContinueShopping={() => setShowCart(false)} />
             ) : (
-                <CartItem onContinueShopping={handleContinueShopping} />
+                plantsArray.map(({ category, plants }) => (
+                    <div key={category}>
+                        <h2>{category}</h2>
+                        <div className="plant-list">
+                            {plants.map((plant) => (
+                                <div key={plant.name} className="plant-card">
+                                    <img src={plant.image} alt={plant.name} />
+                                    <h3>{plant.name}</h3>
+                                    <p>{plant.description}</p>
+                                    <p>{plant.cost}</p>
+                                    <button
+                                        onClick={() => handleAddToCart(plant)}
+                                        disabled={addedToCart[plant.name]}
+                                    >
+                                        {addedToCart[plant.name] ? 'Added' : 'Add to Cart'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))
             )}
         </div>
     );
